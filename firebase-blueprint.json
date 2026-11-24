@@ -1,0 +1,313 @@
+{
+  "entities": {
+    "CreatorProfile": {
+      "title": "CreatorProfile",
+      "description": "Creator niche, target audience, voice tone, and preferred short-form video platforms.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID matching the document ID."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Creator display name."
+        },
+        "niche": {
+          "type": "string",
+          "description": "Primary content niche (e.g., Tecnologia, Finanças, Saúde)."
+        },
+        "targetAudience": {
+          "type": "string",
+          "description": "Target audience description."
+        },
+        "toneStyle": {
+          "type": "string",
+          "description": "Communication tone and style."
+        },
+        "preferredPlatforms": {
+          "type": "array",
+          "description": "Bounded list of up to 5 preferred short-form video platforms."
+        },
+        "weeklyGoal": {
+          "type": "integer",
+          "description": "Target number of videos to publish per week (1-21)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was created (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was last updated (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "niche",
+        "targetAudience",
+        "toneStyle",
+        "preferredPlatforms",
+        "weeklyGoal",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "DailySummary": {
+      "title": "DailySummary",
+      "description": "Daily strategic overview of viral short-form video trends generated for the user.",
+      "type": "object",
+      "properties": {
+        "dateKey": {
+          "type": "string",
+          "description": "ISO date identifier YYYY-MM-DD."
+        },
+        "nicheSnapshot": {
+          "type": "string",
+          "description": "Niche used when generating this daily radar."
+        },
+        "dailyInsight": {
+          "type": "string",
+          "description": "Daily strategic summary of what is performing best."
+        },
+        "bestPostingWindow": {
+          "type": "string",
+          "description": "Recommended posting time window for today."
+        },
+        "topHashtags": {
+          "type": "array",
+          "description": "Up to 10 trending hashtags for today."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "dateKey",
+        "nicheSnapshot",
+        "dailyInsight",
+        "bestPostingWindow",
+        "topHashtags",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ViralTrend": {
+      "title": "ViralTrend",
+      "description": "Daily top-viewed reel/video format analyzed for engagement probability with a ready-to-film simple script.",
+      "type": "object",
+      "properties": {
+        "dateKey": {
+          "type": "string",
+          "description": "ISO date identifier YYYY-MM-DD."
+        },
+        "rank": {
+          "type": "integer",
+          "description": "Daily rank position (1-20)."
+        },
+        "title": {
+          "type": "string",
+          "description": "Short viral trend or format title."
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["Instagram Reels", "TikTok", "YouTube Shorts", "Facebook Reels"],
+          "description": "Primary short-form video platform."
+        },
+        "formatType": {
+          "type": "string",
+          "description": "Format category (e.g., POV, Tutorial Express, Mito vs Realidade)."
+        },
+        "estimatedViewsLabel": {
+          "type": "string",
+          "description": "Estimated reach/views bracket label."
+        },
+        "estimatedViewsCount": {
+          "type": "integer",
+          "description": "Estimated numeric view count used to rank top 3 most-viewed videos."
+        },
+        "engagementScore": {
+          "type": "integer",
+          "description": "Personalized probability of high engagement (0-100)."
+        },
+        "whyItWorks": {
+          "type": "string",
+          "description": "Explanation of why this video pattern is going viral."
+        },
+        "adaptationAngle": {
+          "type": "string",
+          "description": "How the creator should adapt this video using it as inspiration."
+        },
+        "viralAudioStyle": {
+          "type": "string",
+          "description": "Recommended trending audio/music vibe."
+        },
+        "durationSeconds": {
+          "type": "integer",
+          "description": "Recommended video duration in seconds (5-180)."
+        },
+        "hookText": {
+          "type": "string",
+          "description": "Opening 0-3s hook script."
+        },
+        "bodyBeats": {
+          "type": "array",
+          "description": "Ordered simple filming beats (1-8 steps)."
+        },
+        "ctaText": {
+          "type": "string",
+          "description": "Closing call-to-action script."
+        },
+        "visualTips": {
+          "type": "string",
+          "description": "Simple framing, lighting, and caption directions."
+        },
+        "captionAndHashtags": {
+          "type": "string",
+          "description": "Ready-to-use post caption and hashtags."
+        },
+        "savedToScripts": {
+          "type": "boolean",
+          "description": "Whether the user already saved this script to their library."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "dateKey",
+        "rank",
+        "title",
+        "platform",
+        "formatType",
+        "estimatedViewsLabel",
+        "engagementScore",
+        "whyItWorks",
+        "adaptationAngle",
+        "viralAudioStyle",
+        "durationSeconds",
+        "hookText",
+        "bodyBeats",
+        "ctaText",
+        "visualTips",
+        "captionAndHashtags",
+        "savedToScripts",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SavedScript": {
+      "title": "SavedScript",
+      "description": "User-saved or AI-adapted simple video replication script.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Script title."
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["Instagram Reels", "TikTok", "YouTube Shorts", "Facebook Reels"],
+          "description": "Target platform."
+        },
+        "trendInspirationTitle": {
+          "type": "string",
+          "description": "Original viral trend that inspired this script."
+        },
+        "engagementScore": {
+          "type": "integer",
+          "description": "Estimated engagement probability (0-100)."
+        },
+        "durationSeconds": {
+          "type": "integer",
+          "description": "Target duration in seconds (5-180)."
+        },
+        "hookText": {
+          "type": "string",
+          "description": "0-3s hook line."
+        },
+        "bodyBeats": {
+          "type": "array",
+          "description": "Step-by-step simple beats (1-8)."
+        },
+        "ctaText": {
+          "type": "string",
+          "description": "Closing call-to-action."
+        },
+        "visualTips": {
+          "type": "string",
+          "description": "Visual and audio production tips."
+        },
+        "captionAndHashtags": {
+          "type": "string",
+          "description": "Ready-to-paste caption and hashtags."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["RASCUNHO", "GRAVADO", "PUBLICADO"],
+          "description": "Production workflow status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "title",
+        "platform",
+        "trendInspirationTitle",
+        "engagementScore",
+        "durationSeconds",
+        "hookText",
+        "bodyBeats",
+        "ctaText",
+        "visualTips",
+        "captionAndHashtags",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/CreatorProfile" },
+      "description": "User creator profile storing niche, audience, tone, and goals."
+    },
+    "/users/{userId}/dailySummaries/{dateKey}": {
+      "schema": { "$ref": "#/entities/DailySummary" },
+      "description": "Daily viral radar summary keyed by YYYY-MM-DD."
+    },
+    "/users/{userId}/trends/{trendId}": {
+      "schema": { "$ref": "#/entities/ViralTrend" },
+      "description": "Daily analyzed top-viewed reels and videos with engagement scores and replication scripts."
+    },
+    "/users/{userId}/scripts/{scriptId}": {
+      "schema": { "$ref": "#/entities/SavedScript" },
+      "description": "User's saved and customized simple video scripts."
+    }
+  }
+}

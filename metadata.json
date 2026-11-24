@@ -1,0 +1,6 @@
+{
+  "name": "Radar Viral",
+  "description": "Analisa diariamente os reels e vídeos mais vistos com maior chance de engajamento para você e gera roteiros simples para replicar e crescer na internet.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

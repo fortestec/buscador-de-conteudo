@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <string name="firestore_database_id" translatable="false">ai-studio-android-radarvir-befc67c3-4cd5-4866-8968-c09ee9e676c6</string>
+    <string name="recaptcha_site_key" translatable="false">6LfSvTAuAAAAAKO4B56S00s9VxC7V8y9PO3pn8B-</string>
+</resources>

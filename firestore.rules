@@ -1,0 +1,246 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default-Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Hardened Primitives ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidPlatform(platform) {
+      return platform is string && platform in ['Instagram Reels', 'TikTok', 'YouTube Shorts', 'Facebook Reels'];
+    }
+
+    function isValidScriptStatus(status) {
+      return status is string && status in ['RASCUNHO', 'GRAVADO', 'PUBLICADO'];
+    }
+
+    // --- Entity Validation Helpers ---
+    function isValidCreatorProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 60 &&
+             data.niche is string && data.niche.size() >= 2 && data.niche.size() <= 80 &&
+             data.targetAudience is string && data.targetAudience.size() >= 2 && data.targetAudience.size() <= 160 &&
+             data.toneStyle is string && data.toneStyle.size() >= 2 && data.toneStyle.size() <= 60 &&
+             data.preferredPlatforms is list && data.preferredPlatforms.size() >= 1 && data.preferredPlatforms.size() <= 5 &&
+             data.preferredPlatforms[0] is string &&
+             data.weeklyGoal is int && data.weeklyGoal >= 1 && data.weeklyGoal <= 21;
+    }
+
+    function isValidDailySummary(data, dateKey) {
+      return data.dateKey is string && data.dateKey == dateKey &&
+             data.dateKey.size() >= 8 && data.dateKey.size() <= 20 &&
+             data.nicheSnapshot is string && data.nicheSnapshot.size() >= 2 && data.nicheSnapshot.size() <= 80 &&
+             data.dailyInsight is string && data.dailyInsight.size() >= 10 && data.dailyInsight.size() <= 600 &&
+             data.bestPostingWindow is string && data.bestPostingWindow.size() >= 2 && data.bestPostingWindow.size() <= 80 &&
+             data.topHashtags is list && data.topHashtags.size() <= 10 &&
+             (data.topHashtags.size() == 0 || data.topHashtags[0] is string);
+    }
+
+    function isValidViralTrend(data) {
+      return data.dateKey is string && data.dateKey.size() >= 8 && data.dateKey.size() <= 20 &&
+             data.rank is int && data.rank >= 1 && data.rank <= 20 &&
+             data.title is string && data.title.size() >= 2 && data.title.size() <= 120 &&
+             isValidPlatform(data.platform) &&
+             data.formatType is string && data.formatType.size() >= 2 && data.formatType.size() <= 60 &&
+             data.estimatedViewsLabel is string && data.estimatedViewsLabel.size() >= 2 && data.estimatedViewsLabel.size() <= 60 &&
+             (!('estimatedViewsCount' in data) || (data.estimatedViewsCount is int && data.estimatedViewsCount >= 0)) &&
+             data.engagementScore is int && data.engagementScore >= 0 && data.engagementScore <= 100 &&
+             data.whyItWorks is string && data.whyItWorks.size() >= 5 && data.whyItWorks.size() <= 500 &&
+             data.adaptationAngle is string && data.adaptationAngle.size() >= 5 && data.adaptationAngle.size() <= 500 &&
+             data.viralAudioStyle is string && data.viralAudioStyle.size() >= 2 && data.viralAudioStyle.size() <= 120 &&
+             data.durationSeconds is int && data.durationSeconds >= 5 && data.durationSeconds <= 180 &&
+             data.hookText is string && data.hookText.size() >= 2 && data.hookText.size() <= 400 &&
+             data.bodyBeats is list && data.bodyBeats.size() >= 1 && data.bodyBeats.size() <= 8 &&
+             data.bodyBeats[0] is string &&
+             data.ctaText is string && data.ctaText.size() >= 2 && data.ctaText.size() <= 300 &&
+             data.visualTips is string && data.visualTips.size() >= 2 && data.visualTips.size() <= 500 &&
+             data.captionAndHashtags is string && data.captionAndHashtags.size() >= 2 && data.captionAndHashtags.size() <= 600 &&
+             data.savedToScripts is bool;
+    }
+
+    function isValidSavedScript(data) {
+      return data.title is string && data.title.size() >= 2 && data.title.size() <= 120 &&
+             isValidPlatform(data.platform) &&
+             data.trendInspirationTitle is string && data.trendInspirationTitle.size() >= 2 && data.trendInspirationTitle.size() <= 140 &&
+             data.engagementScore is int && data.engagementScore >= 0 && data.engagementScore <= 100 &&
+             data.durationSeconds is int && data.durationSeconds >= 5 && data.durationSeconds <= 180 &&
+             data.hookText is string && data.hookText.size() >= 2 && data.hookText.size() <= 400 &&
+             data.bodyBeats is list && data.bodyBeats.size() >= 1 && data.bodyBeats.size() <= 8 &&
+             data.bodyBeats[0] is string &&
+             data.ctaText is string && data.ctaText.size() >= 2 && data.ctaText.size() <= 300 &&
+             data.visualTips is string && data.visualTips.size() >= 2 && data.visualTips.size() <= 500 &&
+             data.captionAndHashtags is string && data.captionAndHashtags.size() >= 2 && data.captionAndHashtags.size() <= 600 &&
+             isValidScriptStatus(data.status);
+    }
+
+    // --- Collection Rules ---
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'niche', 'targetAudience',
+                         'toneStyle', 'preferredPlatforms', 'weeklyGoal',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'niche', 'targetAudience',
+                         'toneStyle', 'preferredPlatforms', 'weeklyGoal',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidCreatorProfile(incoming(), userId);
+
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidCreatorProfile(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'niche', 'targetAudience',
+                         'toneStyle', 'preferredPlatforms', 'weeklyGoal', 'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /dailySummaries/{dateKey} {
+        allow get: if isOwner(userId) && isValidId(dateKey);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(dateKey) &&
+                         incoming().keys().hasAll([
+                           'dateKey', 'nicheSnapshot', 'dailyInsight',
+                           'bestPostingWindow', 'topHashtags', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'dateKey', 'nicheSnapshot', 'dailyInsight',
+                           'bestPostingWindow', 'topHashtags', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         isValidDailySummary(incoming(), dateKey);
+
+        allow update: if isOwner(userId) &&
+                         isValidId(dateKey) &&
+                         isValidDailySummary(incoming(), dateKey) &&
+                         incoming().dateKey == existing().dateKey &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'nicheSnapshot', 'dailyInsight', 'bestPostingWindow',
+                           'topHashtags', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(dateKey);
+      }
+
+      match /trends/{trendId} {
+        allow get: if isOwner(userId) && isValidId(trendId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(trendId) &&
+                         incoming().keys().hasAll([
+                           'dateKey', 'rank', 'title', 'platform', 'formatType',
+                           'estimatedViewsLabel', 'engagementScore', 'whyItWorks',
+                           'adaptationAngle', 'viralAudioStyle', 'durationSeconds',
+                           'hookText', 'bodyBeats', 'ctaText', 'visualTips',
+                           'captionAndHashtags', 'savedToScripts', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'dateKey', 'rank', 'title', 'platform', 'formatType',
+                           'estimatedViewsLabel', 'estimatedViewsCount', 'engagementScore', 'whyItWorks',
+                           'adaptationAngle', 'viralAudioStyle', 'durationSeconds',
+                           'hookText', 'bodyBeats', 'ctaText', 'visualTips',
+                           'captionAndHashtags', 'savedToScripts', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         isValidViralTrend(incoming());
+
+        allow update: if isOwner(userId) &&
+                         isValidId(trendId) &&
+                         isValidViralTrend(incoming()) &&
+                         incoming().dateKey == existing().dateKey &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['savedToScripts', 'updatedAt']) ||
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'hookText', 'bodyBeats', 'ctaText', 'visualTips',
+                             'captionAndHashtags', 'durationSeconds', 'savedToScripts', 'updatedAt'
+                           ])
+                         );
+
+        allow delete: if isOwner(userId) && isValidId(trendId);
+      }
+
+      match /scripts/{scriptId} {
+        allow get: if isOwner(userId) && isValidId(scriptId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(scriptId) &&
+                         incoming().keys().hasAll([
+                           'title', 'platform', 'trendInspirationTitle',
+                           'engagementScore', 'durationSeconds', 'hookText',
+                           'bodyBeats', 'ctaText', 'visualTips',
+                           'captionAndHashtags', 'status', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'title', 'platform', 'trendInspirationTitle',
+                           'engagementScore', 'durationSeconds', 'hookText',
+                           'bodyBeats', 'ctaText', 'visualTips',
+                           'captionAndHashtags', 'status', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         isValidSavedScript(incoming());
+
+        allow update: if isOwner(userId) &&
+                         isValidId(scriptId) &&
+                         isValidSavedScript(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) ||
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'title', 'platform', 'durationSeconds', 'hookText',
+                             'bodyBeats', 'ctaText', 'visualTips', 'captionAndHashtags',
+                             'status', 'updatedAt'
+                           ])
+                         );
+
+        allow delete: if isOwner(userId) && isValidId(scriptId);
+      }
+    }
+  }
+}
